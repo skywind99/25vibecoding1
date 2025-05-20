@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# GitHub에 업로드된 CSV 파일 URL
-file_url = "https://raw.githubusercontent.com/username/repository/branch/path/to/file.csv"
+# GitHub raw URL
+file_url = "https://raw.githubusercontent.com/skywind99/25vibecoding1/main/pages/202504_202504_%E1%84%8B%E1%85%A7%E1%86%AB%E1%84%85%E1%85%A7%E1%86%BC%E1%84%87%E1%85%A7%E1%86%AF%E1%84%8B%E1%85%B5%E1%86%AB%E1%84%80%E1%85%AE%E1%84%92%E1%85%A7%E1%86%AB%E1%84%92%E1%85%AA%E1%86%BC_%E1%84%8B%E1%85%AF%E1%86%AF%E1%84%80%E1%85%A1%E1%86%AB.csv"
 
 # CSV 파일 로드
 data_1 = pd.read_csv(file_url, encoding='ISO-8859-1')
