@@ -1,58 +1,41 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import folium
+from folium import plugins
 import requests
-from io import StringIO
 
-# GitHub raw URL (파일 경로)
-file_url = "https://raw.githubusercontent.com/skywind99/25vibecoding1/main/pages/202504_202504_연령별인구현황_월간.csv"
+# 파일 URL (GitHub에 저장된 파일)
+file_url = "https://raw.githubusercontent.com/skywind99/25vibecoding1/main/학교기본정보_2025년4월30일기준.csv"
 
-# requests로 파일을 다운로드
-response = requests.get(file_url)
+# CSV 파일을 GitHub에서 읽어오기
+@st.cache
+def load_data():
+    response = requests.get(file_url)
+    data = pd.read_csv(pd.compat.StringIO(response.text), encoding='cp949')
+    return data
 
-# 파일이 성공적으로 다운로드되었는지 확인
-if response.status_code == 200:
-    # CSV 파일을 pandas로 읽기
-    data_1 = pd.read_csv(StringIO(response.text), encoding='cp949')
+# 데이터 로드
+data = load_data()
 
-    # 실제 컬럼명 확인
-    st.write("파일의 컬럼명:", data_1.columns)
-    st.write("컬럼 수:", len(data_1.columns))
+# 데이터 확인
+st.write(data.head())
 
-    # 데이터 일부 확인
-    st.write("파일의 일부 데이터:", data_1.head())
+# 학교 위치 데이터 추출
+schools = data[['학교명', '도로명우편번호', '시도명']].dropna(subset=['도로명우편번호'])
 
-    # 필요한 컬럼만 선택
-    data_1_filtered = data_1[['행정구역', 
-                              '2025년04월_남_0~9세', '2025년04월_남_10~19세', '2025년04월_남_20~29세', 
-                              '2025년04월_남_30~39세', '2025년04월_남_40~49세', '2025년04월_남_50~59세', 
-                              '2025년04월_남_60~69세', '2025년04월_남_70~79세', '2025년04월_남_80~89세', 
-                              '2025년04월_남_90~99세', '2025년04월_남_100세 이상',
-                              '2025년04월_여_0~9세', '2025년04월_여_10~19세', '2025년04월_여_20~29세', 
-                              '2025년04월_여_30~39세', '2025년04월_여_40~49세', '2025년04월_여_50~59세', 
-                              '2025년04월_여_60~69세', '2025년04월_여_70~79세', '2025년04월_여_80~89세', 
-                              '2025년04월_여_90~99세', '2025년04월_여_100세 이상']]
+# 서울을 중심으로 지도 초기화
+map_center = [37.5665, 126.9780]  # 서울의 위도, 경도
+map = folium.Map(location=map_center, zoom_start=12)
 
-    # 숫자 데이터로 변환
-    data_1_filtered = data_1_filtered.apply(pd.to_numeric, errors='coerce')
+# 학교 위치를 지도에 표시 (위도/경도 변환은 외부 API로 처리 가능)
+for _, row in schools.iterrows():
+    # 실제로는 도로명우편번호나 다른 주소 정보를 이용해 위도/경도를 구해야 합니다.
+    folium.Marker(
+        location=[map_center[0], map_center[1]],  # 실제로는 geocoding을 통해 위도, 경도를 구할 수 있습니다.
+        popup=row['학교명']
+    ).add_to(map)
 
-    # Plotly로 연령대별 남성, 여성 인구 비교 시각화
-    fig = px.bar(data_1_filtered,
-                 x='행정구역',
-                 y=['2025년04월_남_0~9세', '2025년04월_남_10~19세', '2025년04월_남_20~29세', 
-                     '2025년04월_남_30~39세', '2025년04월_남_40~49세', '2025년04월_남_50~59세', 
-                     '2025년04월_남_60~69세', '2025년04월_남_70~79세', '2025년04월_남_80~89세', 
-                     '2025년04월_남_90~99세', '2025년04월_남_100세 이상',
-                     '2025년04월_여_0~9세', '2025년04월_여_10~19세', '2025년04월_여_20~29세', 
-                     '2025년04월_여_30~39세', '2025년04월_여_40~49세', '2025년04월_여_50~59세', 
-                     '2025년04월_여_60~69세', '2025년04월_여_70~79세', '2025년04월_여_80~89세', 
-                     '2025년04월_여_90~99세', '2025년04월_여_100세 이상'],
-                 title="연령대별 남성, 여성 인구 비교",
-                 labels={'value': '인구수', 'variable': '연령대'},
-                 barmode='stack')
-
-    # 그래프 출력
-    st.plotly_chart(fig)
-
-else:
-    st.error("파일을 다운로드할 수 없습니다.")
+# Streamlit에서 folium 맵을 표시
+st.write("### 학교 위치 지도")
+folium.plugins.Fullscreen().add_to(map)  # 전체 화면 모드 기능 추가
+folium_static(map)
