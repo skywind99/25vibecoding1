@@ -5,7 +5,7 @@ from folium import plugins
 import requests
 
 # 파일 URL (GitHub에 저장된 파일)
-file_url = "https://raw.githubusercontent.com/skywind99/25vibecoding1/main/pages/학교기본정보_2025년4월30일기준.csv"
+file_url = "https://raw.githubusercontent.com/skywind99/25vibecoding1/main/학교기본정보_2025년4월30일기준.csv"
 
 # CSV 파일을 GitHub에서 읽어오기
 @st.cache
